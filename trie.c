@@ -43,7 +43,7 @@ struct trie *trie_lookup(struct trie *root, char *key)
     struct trie *node = root;
     while (*key != '\0')
     {
-        printf("kek %c\n", *key);
+
         child = trie_get_child(node, *key);
         if (child == NULL)
         {
@@ -61,28 +61,55 @@ struct trie *trie_lookup(struct trie *root, char *key)
     return node;
 }
 
+struct trie *lookup_for_parent(struct trie *root, char *key)
+{
+    struct trie *child;
+    struct trie *node = root;
+    while (*key != '\0')
+    {
+
+        child = trie_get_child(node, *key);
+        if (child == NULL)
+        {
+
+            printf("Child is null %c\n", *key);
+            return NULL;
+        }
+        node = child;
+        key++;
+    }
+    return node;
+}
+
 void trie_delete(struct trie *root, char *key)
 {
     struct trie *node = trie_lookup(root, key);
 
     struct trie *parent = NULL;
     int len = strlen(key);
+    char copy_key[len + 1];
+    strncpy(copy_key, key, len + 1);
 
-    for (int i = 0; i < len; i++)
+    for (int i = 0; i < len - 1; i++)
     {
+        printf("Input string: %s\n", copy_key);
+        copy_key[len - i] = '\0';
+        printf("Working string: %s\n", copy_key);
+        parent = trie_get_parent(root, copy_key);
 
-        printf("2\n");
-        parent = trie_get_parent(root, key);
-        printf("%p\t%p\n", &NIL, parent->rbt);
         struct rbtree *p_root = find_root(parent->rbt);
 
-        if (rbtree_height(p_root) == 1)
+        if (rbtree_height(p_root) > 1)
         {
+            printf("I is: %d\n", i);
             i = len + 1;
         }
-        char last_of_key = *(key + strlen(key) - 1);
+        char last_of_key = *(copy_key + strlen(copy_key) - 1);
+
         rbtree_delete(p_root, last_of_key);
+
         free(node);
+
         node = parent;
     }
 }
@@ -101,12 +128,12 @@ struct trie *trie_get_parent(struct trie *root, char *child_key)
     strncpy(parent_key, child_key, substr_len);
     parent_key[substr_len] = '\0';
 
-    struct trie *parent = trie_lookup(root, parent_key);
+    struct trie *parent = lookup_for_parent(root, parent_key);
     if (parent == NULL)
     {
         printf("Error in get_parent. Parent is null\n");
     }
-    strncpy(child_key, parent_key, strlen(child_key));
+    // strncpy(child_key, parent_key, strlen(child_key));
     return parent;
 }
 
